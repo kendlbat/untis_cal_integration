@@ -1,8 +1,6 @@
 const untis = require('./webuntis_api/untis.js');
 const fs = require('fs');
 const crypto = require('crypto');
-// ical lib
-const ical = require('ical-generator');
 
 const thunderbird_loc = "C:\\Program Files\\Mozilla Thunderbird\\thunderbird.exe";
 
@@ -14,33 +12,30 @@ async function main() {
 
     const storecal = "./untis-cal-integration-host";
 
-    let cal1 = await untis.getWeeklyTimetableICAL(new Date()).split("\n");
-    let cal2 = await untis.getWeeklyTimetableICAL(new Date(new Date().setDate(new Date().getDate() + 7))).split("\n");
-    let cal3 = await untis.getWeeklyTimetableICAL(new Date(new Date().setDate(new Date().getDate() + 14))).split("\n");
-    let cal4 = await untis.getWeeklyTimetableICAL(new Date(new Date().setDate(new Date().getDate() + 21))).split("\n");
+    let cal1 = (await untis.getWeeklyTimetableICAL(new Date())).split("BEGIN:VEVENT");
+    cal1.shift();
+    let cal2 = (await untis.getWeeklyTimetableICAL(new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000))).split("BEGIN:VEVENT");
+    cal2.shift();
+    let cal3 = (await untis.getWeeklyTimetableICAL(new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000))).split("BEGIN:VEVENT");
+    cal3.shift();
+    let cal4 = (await untis.getWeeklyTimetableICAL(new Date(new Date().getTime() + 21 * 24 * 60 * 60 * 1000))).split("BEGIN:VEVENT");
+    cal4.shift();
 
     let call_collection = [cal1, cal2, cal3, cal4];
 
-    // merge the ical files
-    let cal = ical({domain: 'webuntis.com', name: 'WebUntis Timetable', prodId: {company: 'WebUntis', product: 'WebUntis Timetable', language: 'EN'}});
+    console.log(call_collection);
 
-    call_collection.forEach((cal) => {
-        cal.forEach((line) => {
-            if (line.startsWith("BEGIN:VEVENT")) {
-                cal.createEvent({
-                    start: new Date(line.split("DTSTART:")[1].split("T")[0]),
-                    end: new Date(line.split("DTEND:")[1].split("T")[0]),
-                    summary: line.split("SUMMARY:")[1].split("\\n")[0],
-                    description: line.split("DESCRIPTION:")[1].split("\\n")[0],
-                    location: line.split("LOCATION:")[1].split("\\n")[0],
-                    uid: crypto.createHash('md5').update(line.split("UID:")[1].split("\\n")[0]).digest("hex")
-                });
-            }
-        });
-    });
+    let cal = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//WebUntis//WebUntis//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\nX-WR-CALNAME:WebUntis\nX-WR-TIMEZONE:Europe/Berlin\nX-WR-CALDESC:WebUntis\n";
+
+    for (let i = 0; i < call_collection.length; i++) {
+        for (let j = 0; j < call_collection[i].length; j++) {
+            cal += "BEGIN:VEVENT" + call_collection[i][j];
+        }
+    }
+    console.log(cal);
 
     // write the ical file to timetable.ical
-    fs.writeFileSync(storecal + '/timetable.ical', cal.toString());
+    fs.writeFileSync(storecal + '/timetable.ical', cal);
 
     exec('cd ' + storecal + ' && git add ./timetable.ical', (err, stdout, stderr) => {
         console.log(stdout);
