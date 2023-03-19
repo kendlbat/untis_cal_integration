@@ -12,13 +12,13 @@ async function main() {
 
     const storecal = "./untis-cal-integration-host";
 
-    let cal1 = (await untis.getWeeklyTimetableICAL(new Date())).replace("END:VCALENDAR", "").split("BEGIN:VEVENT");
+    let cal1 = (await untis.getWeeklyTimetableICAL(new Date())).replace(/\r?\nEND:VCALENDAR/g, "").split("BEGIN:VEVENT");
     cal1.shift();
-    let cal2 = (await untis.getWeeklyTimetableICAL(new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000))).replace("END:VCALENDAR", "").split("BEGIN:VEVENT");
+    let cal2 = (await untis.getWeeklyTimetableICAL(new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000))).replace(/\r?\nEND:VCALENDAR/g, "").split("BEGIN:VEVENT");
     cal2.shift();
-    let cal3 = (await untis.getWeeklyTimetableICAL(new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000))).replace("END:VCALENDAR", "").split("BEGIN:VEVENT");
+    let cal3 = (await untis.getWeeklyTimetableICAL(new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000))).replace(/\r?\nEND:VCALENDAR/g, "").split("BEGIN:VEVENT");
     cal3.shift();
-    let cal4 = (await untis.getWeeklyTimetableICAL(new Date(new Date().getTime() + 21 * 24 * 60 * 60 * 1000))).replace("END:VCALENDAR", "").split("BEGIN:VEVENT");
+    let cal4 = (await untis.getWeeklyTimetableICAL(new Date(new Date().getTime() + 21 * 24 * 60 * 60 * 1000))).replace(/\r?\nEND:VCALENDAR/g, "").split("BEGIN:VEVENT");
     cal4.shift();
 
     let call_collection = [cal1, cal2, cal3, cal4];
