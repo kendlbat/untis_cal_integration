@@ -32,6 +32,9 @@ async function main() {
             cal += "BEGIN:VEVENT" + call_collection[i][j];
         }
     }
+
+    cal += "END:VCALENDAR";
+
     console.log(cal);
 
     // write the ical file to timetable.ical
