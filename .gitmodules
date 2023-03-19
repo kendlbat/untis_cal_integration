@@ -1,3 +1,6 @@
 [submodule "webuntis_api"]
 	path = webuntis_api
 	url = https://github.com/kendlbat/webuntis_api
+[submodule "untis-cal-integration-host"]
+	path = untis-cal-integration-host
+	url = https://github.com/kendlbat/untis-cal-integration-host.git

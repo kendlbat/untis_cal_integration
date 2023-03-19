@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "ical-generator": "^3.6.1"
+  },
+  "name": "untis_cal_integration",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kendlbat/untis_cal_integration.git"
+  },
+  "author": "Tobias Kendlbacher",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kendlbat/untis_cal_integration/issues"
+  },
+  "homepage": "https://github.com/kendlbat/untis_cal_integration#readme",
+  "description": ""
+}
