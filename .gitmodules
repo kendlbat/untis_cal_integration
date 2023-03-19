@@ -1,0 +1,3 @@
+[submodule "webuntis_api"]
+	path = webuntis_api
+	url = https://github.com/kendlbat/webuntis_api
