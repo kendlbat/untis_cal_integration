@@ -81,7 +81,7 @@ async function login(school = secrets.UNTIS_SCHOOL, username = secrets.UNTIS_USE
     if (res.data && res.data.error)
         throw new Error(res.data.error.message);
     
-    let logindata = res;
+    logindata = res;
 
     let rheaders;
 
