@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 
-const untis = require('./webuntis_api/untis');
+const untis = require('./untis');
 
 app.get("/timetable", async (req, res) => {
     let weeks = req.query.weeks;

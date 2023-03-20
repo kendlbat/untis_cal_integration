@@ -1,4 +1,4 @@
-const untis = require('./webuntis_api/untis.js');
+const untis = require('./untis.js');
 const fs = require('fs');
 
 const thunderbird_loc = "C:\\Program Files\\Mozilla Thunderbird\\thunderbird.exe";
