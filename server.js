@@ -40,6 +40,7 @@ app.get("/timetable", async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(400).send("An unknown error occured");
+        return;
     }
 
     let cal = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//WebUntis//WebUntis//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\nX-WR-CALNAME:WebUntis\nX-WR-TIMEZONE:Europe/Berlin\nX-WR-CALDESC:WebUntis\nREFRESH-INTERVAL;VALUE=DURATION:P1H\n";
@@ -70,6 +71,7 @@ app.get("/kendltimetable", async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(400).send();
+        return;
     }
 
     console.log("Logged in");
