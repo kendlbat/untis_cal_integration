@@ -7,7 +7,12 @@ I am not in any way affiliated with Untis GmbH.
 
 */
 
-const secrets = require("./secrets");
+let secrets = {
+    UNTIS_SCHOOL: process.env.UNTIS_SCHOOL,
+    UNTIS_USER: process.env.UNTIS_USER,
+    UNTIS_PASSWORD: process.env.UNTIS_PASSWORD,
+    UNTIS_URL: process.env.UNTIS_URL
+}
 
 const untis_id = "ident";
 
