@@ -84,6 +84,6 @@ app.get("/kendltimetable", async (req, res) => {
     await untis.logout();
 });
 
-app.listen(3000, () => {
+app.listen(80, () => {
     console.log("Server started");
 });
