@@ -1,11 +1,36 @@
 const untis = require('./webuntis_api/untis.js');
 const fs = require('fs');
-const crypto = require('crypto');
 
 const thunderbird_loc = "C:\\Program Files\\Mozilla Thunderbird\\thunderbird.exe";
 
 // import lib for system commands
 const { exec } = require('child_process');
+
+async function pushToGit(storecal) {
+    exec('cd ' + storecal + ' && git add ./timetable.ical', (err, stdout, stderr) => {
+        console.log(stdout);
+        if (err) {
+            console.error(err);
+            process.exit(1);
+        }
+    });
+
+    exec('cd ' + storecal + ' && git commit -m "Update timetable"', (err, stdout, stderr) => {
+        console.log(stdout);
+        if (err) {
+            console.error(err);
+            process.exit(1);
+        }
+    });
+
+    exec('cd ' + storecal + ' && git push', (err, stdout, stderr) => {
+        console.log(stdout);
+        if (err) {
+            console.error(err);
+            process.exit(1);
+        }
+    });
+}
 
 async function main() {
     await untis.login();
@@ -49,29 +74,7 @@ async function main() {
     // write the ical file to timetable.ical
     fs.writeFileSync(storecal + '/timetable.ical', cal);
 
-    exec('cd ' + storecal + ' && git add ./timetable.ical', (err, stdout, stderr) => {
-        console.log(stdout);
-        if (err) {
-            console.error(err);
-            process.exit(1);
-        }
-    });
-
-    exec('cd ' + storecal + ' && git commit -m "Update timetable"', (err, stdout, stderr) => {
-        console.log(stdout);
-        if (err) {
-            console.error(err);
-            process.exit(1);
-        }
-    });
-
-    exec('cd ' + storecal + ' && git push', (err, stdout, stderr) => {
-        console.log(stdout);
-        if (err) {
-            console.error(err);
-            process.exit(1);
-        }
-    });
+    // pushToGit(storecal);
 
     await untis.logout();
 }
