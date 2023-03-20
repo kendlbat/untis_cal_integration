@@ -39,25 +39,23 @@ async function main() {
 
     let basedate = untis.util.getNextMonday(new Date());
 
+    console.log("Getting week: " + basedate.toISOString().split('T')[0]);
     let cal1 = (await untis.getWeeklyTimetableICAL(basedate)).replace(/\r?\nEND:VCALENDAR/g, "").split("BEGIN:VEVENT");
     cal1.shift();
     basedate = untis.util.getNextMonday(new Date(basedate.getTime() + 7 * 24 * 60 * 60 * 1000));
-    console.log(basedate);
+    console.log("Getting week: " + basedate.toISOString().split('T')[0]);
     let cal2 = (await untis.getWeeklyTimetableICAL(basedate)).replace(/\r?\nEND:VCALENDAR/g, "").split("BEGIN:VEVENT");
     cal2.shift();
     basedate = untis.util.getNextMonday(new Date(basedate.getTime() + 7 * 24 * 60 * 60 * 1000));
-    console.log(basedate);
+    console.log("Getting week: " + basedate.toISOString().split('T')[0]);
     let cal3 = (await untis.getWeeklyTimetableICAL(basedate)).replace(/\r?\nEND:VCALENDAR/g, "").split("BEGIN:VEVENT");
     cal3.shift();
     basedate = untis.util.getNextMonday(new Date(basedate.getTime() + 7 * 24 * 60 * 60 * 1000));
-    console.log(basedate);
+    console.log("Getting week: " + basedate.toISOString().split('T')[0]);
     let cal4 = (await untis.getWeeklyTimetableICAL(basedate)).replace(/\r?\nEND:VCALENDAR/g, "").split("BEGIN:VEVENT");
     cal4.shift();
 
     let call_collection = [cal1, cal2, cal3, cal4];
-
-    console.log(call_collection);
-
 
     let cal = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//WebUntis//WebUntis//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\nX-WR-CALNAME:WebUntis\nX-WR-TIMEZONE:Europe/Berlin\nX-WR-CALDESC:WebUntis\nREFRESH-INTERVAL;VALUE=DURATION:P1H\n";
 
@@ -69,12 +67,30 @@ async function main() {
 
     cal += "END:VCALENDAR";
 
-    console.log(cal);
+    let oldcal = fs.readFileSync(storecal + '/timetable.ical', 'utf8').replace(/^DTSTAMP:.*$/mg, "");
+
+    if (oldcal.localeCompare(cal.replace(/^DTSTAMP:.*$/mg, "")) == 0) {
+        console.log("No changes detected, exiting...");
+        process.exit(0);
+    }
+
+    console.log("Changes:");
+
+    let oldcal_lines = oldcal.split("\n");
+    let cal_lines = cal.replace(/^DTSTAMP:.*$/mg, "").split("\n");
+
+    for (let i = 0; i < oldcal_lines.length; i++) {
+        if (oldcal_lines[i].localeCompare(cal_lines[i]) != 0) {
+            console.log("  -" + oldcal_lines[i]);
+            console.log("  +" + cal_lines[i]);
+            console.log("\n");
+        }
+    }
 
     // write the ical file to timetable.ical
     fs.writeFileSync(storecal + '/timetable.ical', cal);
 
-    // pushToGit(storecal);
+    pushToGit(storecal);
 
     await untis.logout();
 }
