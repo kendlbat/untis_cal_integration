@@ -7,6 +7,10 @@ I am not in any way affiliated with Untis GmbH.
 
 */
 
+const dotenv = require("dotenv");
+
+dotenv.config();
+
 let secrets = {
     UNTIS_SCHOOL: process.env.UNTIS_SCHOOL,
     UNTIS_USER: process.env.UNTIS_USER,
@@ -20,6 +24,7 @@ let logged_in = false;
 let untis_config;
 
 let session_cookies;
+let logindata;
 
 /**
  * 
@@ -70,12 +75,13 @@ async function login(school = secrets.UNTIS_SCHOOL, username = secrets.UNTIS_USE
         })
     });
 
-    let res = await response.json()
+    let res = await response.json();
 
-    console.log(res);
-
+    
     if (res.data && res.data.error)
         throw new Error(res.data.error.message);
+    
+    let logindata = res;
 
     let rheaders;
 
@@ -110,6 +116,8 @@ async function login(school = secrets.UNTIS_SCHOOL, username = secrets.UNTIS_USE
 
     logged_in = true;
     untis_config = config;
+
+    return;
 }
 
 /**
@@ -137,6 +145,7 @@ async function logout(school = secrets.UNTIS_SCHOOL, baseurl = secrets.UNTIS_URL
 
     logged_in = false;
     session_cookies = undefined;  // Clear session cookies, as they are no longer valid
+    logindata = undefined;
 }
 
 /**
@@ -179,7 +188,7 @@ async function getWeeklyTimetableICAL(date, baseurl = secrets.UNTIS_URL, cookies
     return await (
         await fetch(
             encodeURI(
-                `${baseurl}/WebUntis/Ical.do?elemType=5&elemId=5551&rpt_sd=${date.toISOString().split("T")[0]}`
+                `${baseurl}/WebUntis/Ical.do?elemType=5&elemId=${logindata.result.personId}&rpt_sd=${date.toISOString().split("T")[0]}`
             ),
             {
                 headers: {
@@ -197,7 +206,7 @@ async function getWeeklyTimetable(date, baseurl = secrets.UNTIS_URL, cookies = s
     return await (
         await fetch(
             encodeURI(
-                `${baseurl}/WebUntis/api/public/timetable/weekly/data?elementType=5&elementId=5551&date=${date.toISOString().split("T")[0]}&formatId=3`
+                `${baseurl}/WebUntis/api/public/timetable/weekly/data?elementType=5&elementId=${logindata.result.personId}&date=${date.toISOString().split("T")[0]}&formatId=3`
             ),
             {
                 headers: {
