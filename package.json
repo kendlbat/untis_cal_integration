@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "build": "git pull --recurse-submodules && npm install"
+    "build": "git pull origin main --recurse-submodules && npm install"
   },
   "repository": {
     "type": "git",
