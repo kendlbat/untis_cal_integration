@@ -15,8 +15,8 @@ let secrets = {
     UNTIS_SCHOOL: process.env.UNTIS_SCHOOL,
     UNTIS_USER: process.env.UNTIS_USER,
     UNTIS_PASSWORD: process.env.UNTIS_PASSWORD,
-    UNTIS_URL: process.env.UNTIS_URL
-}
+    UNTIS_URL: process.env.UNTIS_URL,
+};
 
 const untis_id = "ident";
 
@@ -27,22 +27,25 @@ let session_cookies;
 let logindata;
 
 /**
- * 
- * @param {Date} date 
+ *
+ * @param {Date} date
  * @returns {string}
  */
 function convertToUntisDate(date) {
     return (
         date.getFullYear().toString() +
-        (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1).toString() +
-        (date.getDate() < 10 ? '0' + date.getDate() : date.getDate()).toString()
+        (date.getMonth() + 1 < 10
+            ? "0" + (date.getMonth() + 1)
+            : date.getMonth() + 1
+        ).toString() +
+        (date.getDate() < 10 ? "0" + date.getDate() : date.getDate()).toString()
     );
 }
 
 /**
- * 
+ *
  * @param {Date} date
- * @returns {Date} 
+ * @returns {Date}
  */
 function getNextMonday(date) {
     let day = date.getDay();
@@ -51,36 +54,41 @@ function getNextMonday(date) {
 }
 
 /**
-* Will use {@link secrets} as default
-* @param {string} school
-* @param {string} username
-* @param {string} password
-* @param {string} baseurl
-*/
-async function login(school = secrets.UNTIS_SCHOOL, username = secrets.UNTIS_USER, password = secrets.UNTIS_PASSWORD, baseurl = secrets.UNTIS_URL) {
-    if (logged_in)
-        console.warn("Call to login even though already logged in");
+ * Will use {@link secrets} as default
+ * @param {string} school
+ * @param {string} username
+ * @param {string} password
+ * @param {string} baseurl
+ */
+async function login(
+    school = secrets.UNTIS_SCHOOL,
+    username = secrets.UNTIS_USER,
+    password = secrets.UNTIS_PASSWORD,
+    baseurl = secrets.UNTIS_URL,
+) {
+    if (logged_in) console.warn("Call to login even though already logged in");
 
-    let response = await fetch(baseurl + "/WebUntis/jsonrpc.do?school=" + school, {
-        method: "POST",
-        "body": JSON.stringify({
-            "id": untis_id,
-            "method": "authenticate",
-            "params": {
-                "user": username,
-                "password": password,
-                "client": untis_id
-            },
-            "jsonrpc": "2.0"
-        })
-    });
+    let response = await fetch(
+        baseurl + "/WebUntis/jsonrpc.do?school=" + school,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                id: untis_id,
+                method: "authenticate",
+                params: {
+                    user: username,
+                    password: password,
+                    client: untis_id,
+                },
+                jsonrpc: "2.0",
+            }),
+        },
+    );
 
     let res = await response.json();
 
-    
-    if (res.data && res.data.error)
-        throw new Error(res.data.error.message);
-    
+    if (res.data && res.data.error) throw new Error(res.data.error.message);
+
     logindata = res;
 
     let rheaders;
@@ -90,9 +98,7 @@ async function login(school = secrets.UNTIS_SCHOOL, username = secrets.UNTIS_USE
             .get("set-cookie")
             .split(";")
             .reduce((prev, curr) => {
-                let kv = curr
-                    .trim()
-                    .split("=");
+                let kv = curr.trim().split("=");
                 prev[kv[0]] = kv[1] || undefined;
                 return prev;
             }, {});
@@ -105,11 +111,17 @@ async function login(school = secrets.UNTIS_SCHOOL, username = secrets.UNTIS_USE
 
     let cookies = [];
     cookies.push(`JSESSIONID=${rheaders["JSESSIONID"]}`);
-    cookies.push('schoolname=\"_' + Buffer.from(school).toString("base64") + "\"");
+    cookies.push(
+        'schoolname="_' + Buffer.from(school).toString("base64") + '"',
+    );
 
     session_cookies = cookies.join(";");
 
-    const config = await (await fetch(`${baseurl}/WebUntis/api/app/config`, { headers: { cookie: session_cookies } })).json();
+    const config = await (
+        await fetch(`${baseurl}/WebUntis/api/app/config`, {
+            headers: { cookie: session_cookies },
+        })
+    ).json();
 
     // write variable to file
     // fs.writeFileSync("config_nogit.json", JSON.stringify(config, null, 4));
@@ -124,54 +136,65 @@ async function login(school = secrets.UNTIS_SCHOOL, username = secrets.UNTIS_USE
  * Logs out of the current session
  * @param {string} school The school name to pass to the api
  */
-async function logout(school = secrets.UNTIS_SCHOOL, baseurl = secrets.UNTIS_URL) {
-    if (!logged_in)
-        console.warn("Call to logout even though not logged in");
-    if (!session_cookies)
-        throw new Error("Not logged in");
+async function logout(
+    school = secrets.UNTIS_SCHOOL,
+    baseurl = secrets.UNTIS_URL,
+) {
+    if (!logged_in) console.warn("Call to logout even though not logged in");
+    if (!session_cookies) throw new Error("Not logged in");
 
     await fetch(`${baseurl}/WebUntis/jsonrpc.do?school=${school}`, {
         method: "POST",
-        "body": JSON.stringify({
-            "id": untis_id,
-            "method": "logout",
-            "params": {},
-            "jsonrpc": "2.0"
+        body: JSON.stringify({
+            id: untis_id,
+            method: "logout",
+            params: {},
+            jsonrpc: "2.0",
         }),
         headers: {
-            cookie: session_cookies
-        }
+            cookie: session_cookies,
+        },
     });
 
     logged_in = false;
-    session_cookies = undefined;  // Clear session cookies, as they are no longer valid
+    session_cookies = undefined; // Clear session cookies, as they are no longer valid
     logindata = undefined;
 }
 
 /**
  * @see {@link https://webuntis.noim.me/classes/WebUntis.html#getExamsForRange getExamsForRange - WebUntis API Docs}
- * 
- * @param {Date} startDate 
- * @param {Date | null} endDate 
+ *
+ * @param {Date} startDate
+ * @param {Date | null} endDate
  * @param {string} baseurl Defaults to {@link secrets.UNTIS_URL}
  * @param {string} cookies
- * 
+ *
  * @returns {object}
  */
-async function getExamsBetween(startDate, endDate = null, baseurl = secrets.UNTIS_URL, cookies = session_cookies) {
-    if (!session_cookies)
-        throw new Error("Not logged in");
+async function getExamsBetween(
+    startDate,
+    endDate = null,
+    baseurl = secrets.UNTIS_URL,
+    cookies = session_cookies,
+) {
+    if (!session_cookies) throw new Error("Not logged in");
 
     return await (
         await fetch(
             encodeURI(
-                `${baseurl}/WebUntis/api/exams?startDate=${convertToUntisDate(startDate)}${endDate == null ? "&endDate=" + convertToUntisDate(endDate) : ""}`
+                `${baseurl}/WebUntis/api/exams?startDate=${convertToUntisDate(
+                    startDate,
+                )}${
+                    endDate == null
+                        ? "&endDate=" + convertToUntisDate(endDate)
+                        : ""
+                }`,
             ),
             {
                 headers: {
-                    cookie: session_cookies
-                }
-            }
+                    cookie: session_cookies,
+                },
+            },
         )
     ).json();
 }
@@ -180,39 +203,49 @@ async function getExamsBetween(startDate, endDate = null, baseurl = secrets.UNTI
  * @param {Date} date
  * @returns {string}
  */
-async function getWeeklyTimetableICAL(date, baseurl = secrets.UNTIS_URL, cookies = session_cookies) {
+async function getWeeklyTimetableICAL(
+    date,
+    baseurl = secrets.UNTIS_URL,
+    cookies = session_cookies,
+) {
     // https://asopo.webuntis.com/WebUntis/Ical.do?elemType=5&elemId=5551&rpt_sd=2023-03-20
-    if (!session_cookies)
-        throw new Error("Not logged in");
+    if (!session_cookies) throw new Error("Not logged in");
 
     return await (
         await fetch(
             encodeURI(
-                `${baseurl}/WebUntis/Ical.do?elemType=5&elemId=${logindata.result.personId}&rpt_sd=${date.toISOString().split("T")[0]}`
+                `${baseurl}/WebUntis/Ical.do?elemType=5&elemId=${
+                    logindata.result.personId
+                }&rpt_sd=${date.toISOString().split("T")[0]}`,
             ),
             {
                 headers: {
-                    cookie: session_cookies
-                }
-            }
+                    cookie: session_cookies,
+                },
+            },
         )
     ).text();
 }
 
-async function getWeeklyTimetable(date, baseurl = secrets.UNTIS_URL, cookies = session_cookies) {
-    if (!session_cookies)
-        throw new Error("Not logged in");
-    
+async function getWeeklyTimetable(
+    date,
+    baseurl = secrets.UNTIS_URL,
+    cookies = session_cookies,
+) {
+    if (!session_cookies) throw new Error("Not logged in");
+
     return await (
         await fetch(
             encodeURI(
-                `${baseurl}/WebUntis/api/public/timetable/weekly/data?elementType=5&elementId=${logindata.result.personId}&date=${date.toISOString().split("T")[0]}&formatId=3`
+                `${baseurl}/WebUntis/api/public/timetable/weekly/data?elementType=5&elementId=${
+                    logindata.result.personId
+                }&date=${date.toISOString().split("T")[0]}&formatId=3`,
             ),
             {
                 headers: {
-                    cookie: session_cookies
-                }
-            }
+                    cookie: session_cookies,
+                },
+            },
         )
     ).json();
 }
@@ -236,6 +269,6 @@ module.exports = {
     getWeeklyTimetableICAL,
     util: {
         getNextMonday,
-        convertToUntisDate
-    }
-}
+        convertToUntisDate,
+    },
+};

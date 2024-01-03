@@ -1,0 +1,62 @@
+openapi: 3.0.3
+info:
+    title: kendlbat.dev - WebUntis calendar integration
+    contact:
+        email: untisintegration@kendlbat.dev
+    license:
+        name: MIT
+        url: https://mit-license.org/
+    version: 1.0.0
+servers:
+    - url: https://untisintegration.kendlbat.dev
+paths:
+    /timetable:
+        get:
+            summary: Gets the timetable in ical format for the specified user
+            description: ""
+            operationId: ""
+            parameters:
+                - name: weeks
+                  in: query
+                  description: The number of weeks to get the timetable for
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 4
+                      default: 4
+                - name: username
+                  in: query
+                  description: The username of the user to get the timetable for
+                  required: true
+                  schema:
+                      type: string
+                - name: password
+                  in: query
+                  description: The password of the user to get the timetable for
+                  required: true
+                  schema:
+                      type: string
+                - name: school
+                  in: query
+                  description: The school to get the timetable for
+                  required: true
+                  schema:
+                      type: string
+                - name: baseurl
+                  in: query
+                  description: The base url of the webuntis instance
+                  required: true
+                  schema:
+                      type: string
+
+            responses:
+                200:
+                    description: Success - calendar data
+                    content:
+                        text/calendar:
+                            schema:
+                                type: string
+                                format: binary
+                400:
+                    description: Error in request

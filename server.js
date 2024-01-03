@@ -1,13 +1,19 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 
-const untis = require('./untis');
+const untis = require("./untis");
+app.use((req, res, next) => {
+    console.log(req.originalUrl);
+    next();
+});
+
+app.use("/", express.static("public"));
 
 app.get("/timetable", async (req, res) => {
     let weeks = req.query.weeks;
     if (weeks == null) weeks = 1;
     weeks = parseInt(weeks);
-    if (weeks < 1) weeks = 1;
+    if (weeks < 1) weeks = 4;
     if (weeks > 4) weeks = 4;
 
     let username = req.query.username;
@@ -15,7 +21,12 @@ app.get("/timetable", async (req, res) => {
     let school = req.query.school;
     let baseurl = req.query.baseurl;
 
-    if (username == null || password == null || school == null || baseurl == null) {
+    if (
+        username == null ||
+        password == null ||
+        school == null ||
+        baseurl == null
+    ) {
         res.status(400).send("Missing required query params");
         return;
     }
@@ -32,10 +43,14 @@ app.get("/timetable", async (req, res) => {
 
     try {
         for (let i = 0; i < weeks; i++) {
-            tempcal = (await untis.getWeeklyTimetableICAL(basedate)).replace(/\r?\nEND:VCALENDAR/g, "").split("BEGIN:VEVENT");
+            tempcal = (await untis.getWeeklyTimetableICAL(basedate))
+                .replace(/\r?\nEND:VCALENDAR/g, "")
+                .split("BEGIN:VEVENT");
             tempcal.shift();
             cal_collection.push(tempcal);
-            basedate = untis.util.getNextMonday(new Date(basedate.getTime() + 7 * 24 * 60 * 60 * 1000));
+            basedate = untis.util.getNextMonday(
+                new Date(basedate.getTime() + 7 * 24 * 60 * 60 * 1000),
+            );
         }
     } catch (e) {
         console.error(e);
@@ -43,7 +58,8 @@ app.get("/timetable", async (req, res) => {
         return;
     }
 
-    let cal = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//WebUntis//WebUntis//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\nX-WR-CALNAME:WebUntis\nX-WR-TIMEZONE:Europe/Berlin\nX-WR-CALDESC:WebUntis\nREFRESH-INTERVAL;VALUE=DURATION:P1H\n";
+    let cal =
+        "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//WebUntis//WebUntis//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\nX-WR-CALNAME:WebUntis\nX-WR-TIMEZONE:Europe/Berlin\nX-WR-CALDESC:WebUntis\nREFRESH-INTERVAL;VALUE=DURATION:P1H\n";
 
     for (let i = 0; i < cal_collection.length; i++) {
         for (let j = 0; j < cal_collection[i].length; j++) {
@@ -82,17 +98,22 @@ app.get("/kendltimetable", async (req, res) => {
 
     try {
         for (let i = 0; i < weeks; i++) {
-            tempcal = (await untis.getWeeklyTimetableICAL(basedate)).replace(/\r?\nEND:VCALENDAR/g, "").split("BEGIN:VEVENT");
+            tempcal = (await untis.getWeeklyTimetableICAL(basedate))
+                .replace(/\r?\nEND:VCALENDAR/g, "")
+                .split("BEGIN:VEVENT");
             tempcal.shift();
             cal_collection.push(tempcal);
-            basedate = untis.util.getNextMonday(new Date(basedate.getTime() + 7 * 24 * 60 * 60 * 1000));
+            basedate = untis.util.getNextMonday(
+                new Date(basedate.getTime() + 7 * 24 * 60 * 60 * 1000),
+            );
         }
     } catch (e) {
         console.error(e);
         res.status(400).send("An unknown error occured");
     }
 
-    let cal = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//WebUntis//WebUntis//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\nX-WR-CALNAME:WebUntis\nX-WR-TIMEZONE:Europe/Berlin\nX-WR-CALDESC:WebUntis\nREFRESH-INTERVAL;VALUE=DURATION:P1H\n";
+    let cal =
+        "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//WebUntis//WebUntis//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\nX-WR-CALNAME:WebUntis\nX-WR-TIMEZONE:Europe/Berlin\nX-WR-CALDESC:WebUntis\nREFRESH-INTERVAL;VALUE=DURATION:P1H\n";
 
     for (let i = 0; i < cal_collection.length; i++) {
         for (let j = 0; j < cal_collection[i].length; j++) {
@@ -105,6 +126,10 @@ app.get("/kendltimetable", async (req, res) => {
     res.set("Content-Type", "text/calendar");
     res.send(cal);
     await untis.logout();
+});
+
+app.get("/", async (req, res) => {
+    res.redirect("/swagger/index.html");
 });
 
 app.listen(process.env.PORT || 3000, () => {
